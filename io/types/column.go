@@ -41,11 +41,16 @@ func (c *Column) getDummyRow(targetRow int) string {
 }
 
 func (c *Column) GetFormattedRow(targetRow, columnPosition int) string {
-	label, value := "  ", "  "
+	label, value := "  ", " "
 
 	if targetRow >= 0 && targetRow < c.RowCount {
-		label = c.styles[targetRow].Style(c.labels[targetRow]) + ":"
-		value = c.styles[targetRow].Style(c.values[targetRow])
+		if c.styles[targetRow] == nil {
+			label = c.labels[targetRow] + ":"
+			value = c.values[targetRow]
+		} else {
+			label = c.styles[targetRow].Style(c.labels[targetRow]) + ":"
+			value = c.styles[targetRow].Style(c.values[targetRow])
+		}
 	} else if c.RowCount == targetRow {
 		if columnPosition == 0 {
 			return getHorizontalBorder("endleft", c.Length)
@@ -53,7 +58,7 @@ func (c *Column) GetFormattedRow(targetRow, columnPosition int) string {
 			return getHorizontalBorder("endright", c.Length)
 		}
 
-		return getHorizontalBorder("bottom", c.Length-1)
+		return getHorizontalBorder("bottom", c.Length)
 	}
 
 	dif := c.Length - len(c.getDummyRow(targetRow))
@@ -69,7 +74,7 @@ func (c *Column) GetFormattedRow(targetRow, columnPosition int) string {
 func getHorizontalBorder(position string, innerLenght int) string {
 	var l, fill, r string
 
-	innerLenght += 3
+	innerLenght += 2
 	switch position {
 	case "top":
 		l = shared.UpLeft
@@ -84,11 +89,11 @@ func getHorizontalBorder(position string, innerLenght int) string {
 		l = ""
 		r = shared.DownRight
 	default:
+		innerLenght--
 		l = shared.SepLeft
 		r = shared.SepRight
 	}
 
 	fill = strings.Repeat(shared.Horizontal, innerLenght)
-
 	return fmt.Sprintf("%s%s%s", l, fill, r)
 }

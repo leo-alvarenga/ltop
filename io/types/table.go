@@ -20,14 +20,17 @@ func NewMainInfoTable() *MainInfoTable {
 	t := new(MainInfoTable)
 	t.SysColumn, t.MemColumn, t.SwapColumn = NewColumn(), NewColumn(), NewColumn()
 
+	t.MemColumn.AddRow("Memory", "", shared.GetNewStyle("cyan", "", "bold", "underline"))
+	t.SwapColumn.AddRow("Swap", "", shared.GetNewStyle("cyan", "", "bold", "underline"))
+
 	return t
 }
 
-func (t *MainInfoTable) GetRows(terminalWidth int) (table []string) {
+func (t *MainInfoTable) GetRows(terminalWidth int, graph *Graph) (table []string) {
 	t.CalculateLength()
 
 	if terminalWidth < t.TotalLength {
-		println("Too small...")
+		println("Too small...", terminalWidth, t.TotalLength)
 		return
 	}
 
@@ -38,6 +41,8 @@ func (t *MainInfoTable) GetRows(terminalWidth int) (table []string) {
 	}
 
 	table = append(table, t.getHeader()...)
+	table = append(table, getHorizontalBorder("sep", t.TotalInnerLength))
+	table = append(table, graph.GetValues()...)
 	table = append(table, getHorizontalBorder("sep", t.TotalInnerLength))
 	for i := 0; i <= t.MemColumn.RowCount; i++ {
 		sys, mem, swp := -1, i, -1
@@ -64,17 +69,11 @@ func (t *MainInfoTable) GetCombinedRows(sys, mem, swp int) string {
 	swpSide := t.SwapColumn.GetFormattedRow(swp, 2)
 
 	if sys < t.SysColumn.RowCount && sys != -1 {
-		sysSide = fmt.Sprintf(" %s %s ", sep, sysSide)
-	} else if sys == t.SysColumn.RowCount {
-		memSide = fmt.Sprintf("%s %s %s", shared.SepRight, memSide, sep)
-		mem = -1
+		sysSide = fmt.Sprintf("%s %s ", sep, sysSide)
 	}
 
 	if swp < t.SwapColumn.RowCount && swp != -1 {
-		swpSide = fmt.Sprintf(" %s  %s ", swpSide, sep)
-	} else if swp == t.SwapColumn.RowCount {
-		memSide = fmt.Sprintf("%s %s %s", sep, memSide, shared.SepLeft)
-		mem = -1
+		swpSide = fmt.Sprintf(" %s %s ", swpSide, sep)
 	}
 
 	if mem >= 0 && mem != t.MemColumn.RowCount {
@@ -109,17 +108,16 @@ func (t *MainInfoTable) getHeader() []string {
 	sep := shared.Vertical
 	msg := "ltop - System and Memory info"
 
-	length := t.TotalInnerLength - len(msg)
-	f1 := strings.Repeat(" ", length/2)
-	f2 := strings.Repeat(" ", (length/2)+(length%2))
-
+	length := t.TotalInnerLength - len(msg) - 2
 	return []string{
-		getHorizontalBorder("top", t.TotalInnerLength),
+		getHorizontalBorder("top", t.TotalInnerLength-t.TotalInnerLength%2),
 		fmt.Sprintf(
-			"%s%s %s %s %s ",
-			sep, f1,
+			"%s%s %s %s%s ",
+			sep,
+			strings.Repeat(" ", length/2),
 			shared.GetNewStyle("purple", "", "bold").Style(msg),
-			f2, sep,
+			strings.Repeat(" ", length/2+t.TotalInnerLength%2),
+			sep,
 		),
 	}
 }

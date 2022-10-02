@@ -82,3 +82,20 @@ func StringToFloat64(data string) float64 {
 
 	return value
 }
+
+func TimeToString(time int) string {
+	hrs := time / 3600
+	time = time % 3600
+
+	min := time / 60
+	time = time % 60
+
+	if hrs > 24 {
+		days := hrs / 24
+		hrs = hrs % 24
+
+		return fmt.Sprintf("%d days %dh %dmin %ds", days, hrs, min, time)
+	}
+
+	return fmt.Sprintf("%dh %dmin %ds", hrs, min, time)
+}
