@@ -94,7 +94,7 @@ func TimeToString(time int) string {
 		days := hrs / 24
 		hrs = hrs % 24
 
-		return fmt.Sprintf("%d days %dh %dmin %ds", days, hrs, min, time)
+		return fmt.Sprintf("%dd %dh %dmin %ds", days, hrs, min, time)
 	}
 
 	return fmt.Sprintf("%dh %dmin %ds", hrs, min, time)

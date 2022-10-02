@@ -8,7 +8,7 @@ import (
 	"github.com/leo-alvarenga/ltop/io/shared"
 )
 
-func GetMemInfo() (data map[string]float64, err error) {
+func getMemInfo() (data map[string]float64, err error) {
 	file, err := os.Open(memInfoFile)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func GetMemInfo() (data map[string]float64, err error) {
 	return m, nil
 }
 
-func GetSysInfo() (data map[string]string, err error) {
+func getSysInfo() (data map[string]string, err error) {
 	file, err := os.Open(sysInfoFile)
 
 	if err != nil {
