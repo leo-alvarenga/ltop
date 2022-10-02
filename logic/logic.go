@@ -8,27 +8,26 @@ import (
 	"github.com/leo-alvarenga/ltop/io/shared"
 )
 
-func getMemInfo() (data map[string]float64, err error) {
+func getMemInfo() (keys [9]string, values [9]float64, err error) {
 	file, err := os.Open(memInfoFile)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	m := make(map[string]float64)
 	scan := bufio.NewScanner(file)
 
 	for scan.Scan() {
 		key, value := shared.GetKeyAndValueFromString(scan.Text())
-		setValue(key, shared.StringToFloat64(value), m)
+		keys, values = setValue(key, shared.StringToFloat64(value), keys, values)
 	}
 
-	setValue("used", m["total"]-m["free"]-m["buff"]-m["cach"], m)
-	setValue("swapUsed", m["swaptotal"]-m["swapfree"], m)
+	keys, values = setValue("used", values[0]-values[5]-values[2]-values[3], keys, values)
+	keys, values = setValue("swapUsed", values[6]-values[8], keys, values)
 
-	return m, nil
+	return
 }
 
-func getSysInfo() (data map[string]string, err error) {
+func getSysInfo() (keys [3]string, values [3]string, err error) {
 	file, err := os.Open(sysInfoFile)
 
 	if err != nil {
@@ -36,7 +35,6 @@ func getSysInfo() (data map[string]string, err error) {
 	}
 
 	defer file.Close()
-	data = make(map[string]string)
 
 	scan := bufio.NewScanner(file)
 	for scan.Scan() {
@@ -44,11 +42,14 @@ func getSysInfo() (data map[string]string, err error) {
 
 		switch key {
 		case "NAME":
-			data["DistroName"] = value
+			keys[0] = "Distro"
+			values[0] = value
 		case "VERSION":
-			data["Version"] = value
+			keys[1] = "Version"
+			values[1] = value
 		case "BUILD_ID":
-			data["Version"] = value
+			keys[1] = "Version"
+			values[1] = value
 		}
 	}
 
@@ -57,7 +58,8 @@ func getSysInfo() (data map[string]string, err error) {
 		return
 	}
 
-	data["Uptime"] = uptime
+	keys[2] = "Uptime"
+	values[2] = uptime
 
 	return
 }
@@ -78,28 +80,40 @@ func getUptime() (string, error) {
 	return shared.TimeToString(uptime), nil
 }
 
-func setValue(key string, value float64, m map[string]float64) {
+func setValue(key string, value float64, keys [9]string, values [9]float64) ([9]string, [9]float64) {
 	switch key {
 	case "MemTotal":
-		m["total"] = value
-	case "Buffers":
-		m["buff"] = value
-	case "Shmem":
-		m["shrd"] = value
-	case "Cached":
-		m["cach"] += value
-	case "SReclaimable":
-		m["cach"] += value
+		keys[0] = "total"
+		values[0] = value
 	case "used":
-		m["used"] = value
+		keys[1] = "used"
+		values[1] = value
+	case "Cached":
+		keys[2] = "cach"
+		values[2] += value
+	case "SReclaimable":
+		keys[2] = "cach"
+		values[2] += value
+	case "Shmem":
+		keys[3] = "shrd"
+		values[3] = value
+	case "Buffers":
+		keys[4] = "buff"
+		values[4] = value
 	case "MemFree":
-		m["free"] = value
+		keys[5] = "free"
+		values[5] = value
 
 	case "SwapTotal":
-		m["swaptotal"] = value
-	case "SwapFree":
-		m["swapfree"] = value
+		keys[6] = "swaptotal"
+		values[6] = value
 	case "swapUsed":
-		m["swapused"] = value
+		keys[7] = "swapused"
+		values[7] = value
+	case "SwapFree":
+		keys[8] = "swapfree"
+		values[8] = value
 	}
+
+	return keys, values
 }

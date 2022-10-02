@@ -48,12 +48,14 @@ func clearStdout() {
 }
 
 func getData(table *types.MainInfoTable) *types.Graph {
-	data, err := getMemInfo()
+	keys, values, err := getMemInfo()
 	if err != nil {
 		return nil
 	}
 
-	for key, value := range data {
+	for i, value := range values {
+		key := keys[i]
+
 		if strings.Contains(key, "swap") {
 			label := strings.ReplaceAll(key, "swap", "")
 			table.SwapColumn.AddRow(
@@ -72,12 +74,14 @@ func getData(table *types.MainInfoTable) *types.Graph {
 		)
 	}
 
-	sysdata, err := getSysInfo()
+	sysKeys, sysValues, err := getSysInfo()
 	if err != nil {
 		return nil
 	}
 
-	for key, value := range sysdata {
+	for i, value := range sysValues {
+		key := sysKeys[i]
+
 		table.SysColumn.AddRow(
 			key,
 			value,
@@ -86,25 +90,27 @@ func getData(table *types.MainInfoTable) *types.Graph {
 	}
 
 	table.CalculateLength()
-	return setupGraph(data, table.TotalInnerLength)
+	return setupGraph(keys, values, table.TotalInnerLength)
 }
 
-func setupGraph(data map[string]float64, length int) *types.Graph {
+func setupGraph(keys [9]string, values [9]float64, length int) *types.Graph {
 	graph := types.NewGraph(length + 2)
 
-	for key, value := range data {
+	for i, value := range values {
+		key := keys[i]
+
 		if strings.Contains(key, "total") || strings.Contains(key, "available") {
 			continue
 		}
 
 		if strings.Contains(key, "swap") {
 			label := strings.ReplaceAll(key, "swap", "")
-			graph.AddValue(value, data["swaptotal"], shared.ColorsByLabel[label], "Swap :  ", 1)
+			graph.AddValue(value, values[6], shared.ColorsByLabel[label], "Swap :  ", 1)
 
 			continue
 		}
 
-		graph.AddValue(value, data["total"], shared.ColorsByLabel[key], "Memory: ", 0)
+		graph.AddValue(value, values[0], shared.ColorsByLabel[key], "Memory: ", 0)
 	}
 
 	return graph
