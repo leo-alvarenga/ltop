@@ -27,27 +27,26 @@ func NewGraph(length int) *Graph {
 
 func (g *Graph) AddValue(value, total float64, color, label string, row int) {
 	v := shared.Float64ToString(value)
-	abs := int(value)
-	length := (abs * (g.GraphLength - len(label))) / int(total)
 
-	if length < len(v) {
+	l := int((value * float64(g.GraphLength-len(label))) / total)
+
+	if l == 0 {
 		v = ""
 	}
 
-	fill := strings.Repeat(" ", length-len(v))
-
-	if length == 0 {
-		fill = " "
+	var bar string
+	if l > len(v) {
+		bar = v
+		l -= len(v)
 	}
+
+	bar = strings.Repeat(" ", l) + bar
 
 	g.Values[row] = append(
 		g.Values[row],
-		shared.GetNewStyle("", color).Style(fmt.Sprintf("%s%s", fill, v)),
+		shared.GetNewStyle("", color).Style(bar),
 	)
-	g.originals[row] = append(
-		g.originals[row],
-		fmt.Sprintf("%s%s", fill, v),
-	)
+	g.originals[row] = append(g.originals[row], bar)
 }
 
 func (g *Graph) GetValues() (bars []string) {
